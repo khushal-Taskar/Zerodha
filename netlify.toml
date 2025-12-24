@@ -1,6 +1,13 @@
 [build]
-  command = "cd frontend && npm install && npm run build"
-  publish = "frontend/dist"
+  # CI=false add karne se warnings ki wajah se build fail nahi hoga
+  command = "cd frontend && npm install && CI=false npm run build"
+  
+  # Agar Create React App hai to 'build' use karein, Vite hai to 'dist'
+  # Aapke structure ke hisab se ye 'frontend/build' hona chahiye
+  publish = "frontend/build"
+
+[build.environment]
+  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/*"
