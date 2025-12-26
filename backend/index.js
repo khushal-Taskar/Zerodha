@@ -5,30 +5,28 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
+// Models Import
 const { HoldingsModel } = require("./model/HoldingsModel");
-
 const { PositionsModel } = require("./model/PositionsModel");
 const { OrdersModel } = require("./model/OrdersModel");
 
+// ✅ FIX 1: Dynamic PORT (Railway ke liye zaroori)
 const PORT = process.env.PORT || 3002;
 const uri = process.env.MONGOOSE_URL;
 
 const app = express();
 
-app.use(cors());
-app.use(bodyParser.json());
-
-
-// URL ke peeche se '/' hata diya hai (Zaroori step)
+// ✅ FIX 2: Sahi CORS Configuration
+// Note: URLs ke aage slash '/' nahi hona chahiye
 const allowedOrigins = [
-  'https://zerodha-ashen.vercel.app', 
-  'https://zerodha-jgh3.vercel.app', 
-  'http://localhost:3000'
+  'https://zerodha-ashen.vercel.app',
+  'https://zerodha-jgh3.vercel.app',
+  'http://localhost:3000' // Local testing ke liye
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Check if the origin is in our allowed list
+    // !origin ka matlab hai non-browser requests (like Postman) allow hain
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -38,185 +36,29 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
-// app.get("/addHoldings", async (req, res) => {
-//   let tempHoldings = [
-//     {
-//       name: "BHARTIARTL",
-//       qty: 2,
-//       avg: 538.05,
-//       price: 541.15,
-//       net: "+0.58%",
-//       day: "+2.99%",
-//     },
-//     {
-//       name: "HDFCBANK",
-//       qty: 2,
-//       avg: 1383.4,
-//       price: 1522.35,
-//       net: "+10.04%",
-//       day: "+0.11%",
-//     },
-//     {
-//       name: "HINDUNILVR",
-//       qty: 1,
-//       avg: 2335.85,
-//       price: 2417.4,
-//       net: "+3.49%",
-//       day: "+0.21%",
-//     },
-//     {
-//       name: "INFY",
-//       qty: 1,
-//       avg: 1350.5,
-//       price: 1555.45,
-//       net: "+15.18%",
-//       day: "-1.60%",
-//       isLoss: true,
-//     },
-//     {
-//       name: "ITC",
-//       qty: 5,
-//       avg: 202.0,
-//       price: 207.9,
-//       net: "+2.92%",
-//       day: "+0.80%",
-//     },
-//     {
-//       name: "KPITTECH",
-//       qty: 5,
-//       avg: 250.3,
-//       price: 266.45,
-//       net: "+6.45%",
-//       day: "+3.54%",
-//     },
-//     {
-//       name: "M&M",
-//       qty: 2,
-//       avg: 809.9,
-//       price: 779.8,
-//       net: "-3.72%",
-//       day: "-0.01%",
-//       isLoss: true,
-//     },
-//     {
-//       name: "RELIANCE",
-//       qty: 1,
-//       avg: 2193.7,
-//       price: 2112.4,
-//       net: "-3.71%",
-//       day: "+1.44%",
-//     },
-//     {
-//       name: "SBIN",
-//       qty: 4,
-//       avg: 324.35,
-//       price: 430.2,
-//       net: "+32.63%",
-//       day: "-0.34%",
-//       isLoss: true,
-//     },
-//     {
-//       name: "SGBMAY29",
-//       qty: 2,
-//       avg: 4727.0,
-//       price: 4719.0,
-//       net: "-0.17%",
-//       day: "+0.15%",
-//     },
-//     {
-//       name: "TATAPOWER",
-//       qty: 5,
-//       avg: 104.2,
-//       price: 124.15,
-//       net: "+19.15%",
-//       day: "-0.24%",
-//       isLoss: true,
-//     },
-//     {
-//       name: "TCS",
-//       qty: 1,
-//       avg: 3041.7,
-//       price: 3194.8,
-//       net: "+5.03%",
-//       day: "-0.25%",
-//       isLoss: true,
-//     },
-//     {
-//       name: "WIPRO",
-//       qty: 4,
-//       avg: 489.3,
-//       price: 577.75,
-//       net: "+18.08%",
-//       day: "+0.32%",
-//     },
-//   ];
 
-//   tempHoldings.forEach((item) => {
-//     let newHolding = new HoldingsModel({
-//       name: item.name,
-//       qty: item.qty,
-//       avg: item.avg,
-//       price: item.price,
-//       net: item.day,
-//       day: item.day,
-//     });
+app.use(bodyParser.json());
 
-//     newHolding.save();
-//   });
-//   res.send("Done!");
-// });
+// ✅ FIX 3: Root Route (Server check karne ke liye)
+app.get("/", (req, res) => {
+  res.send("Server is working fine!");
+});
 
-// app.get("/addPositions", async (req, res) => {
-//   let tempPositions = [
-//     {
-//       product: "CNC",
-//       name: "EVEREADY",
-//       qty: 2,
-//       avg: 316.27,
-//       price: 312.35,
-//       net: "+0.58%",
-//       day: "-1.24%",
-//       isLoss: true,
-//     },
-//     {
-//       product: "CNC",
-//       name: "JUBLFOOD",
-//       qty: 1,
-//       avg: 3124.75,
-//       price: 3082.65,
-//       net: "+10.04%",
-//       day: "-1.35%",
-//       isLoss: true,
-//     },
-//   ];
+// --- API Routes ---
 
-//   tempPositions.forEach((item) => {
-//     let newPosition = new PositionsModel({
-//       product: item.product,
-//       name: item.name,
-//       qty: item.qty,
-//       avg: item.avg,
-//       price: item.price,
-//       net: item.net,
-//       day: item.day,
-//       isLoss: item.isLoss,
-//     });
-
-//     newPosition.save();
-//   });
-//   res.send("Done!");
-// });
-
+// 1. Get All Holdings
 app.get("/allHoldings", async (req, res) => {
   let allHoldings = await HoldingsModel.find({});
   res.json(allHoldings);
 });
 
+// 2. Get All Positions
 app.get("/allPositions", async (req, res) => {
   let allPositions = await PositionsModel.find({});
   res.json(allPositions);
 });
 
+// 3. Get All Orders
 app.get("/allOrders", async (req, res) => {
   try {
     const orders = await OrdersModel.find({});
@@ -226,31 +68,27 @@ app.get("/allOrders", async (req, res) => {
   }
 });
 
-
+// 4. Place New Order (Buy/Sell Logic)
 app.post("/newOrder", async (req, res) => {
   try {
     const { name, qty, price, mode } = req.body;
 
-    // 1️⃣ Save order
+    // Save order
     const newOrder = new OrdersModel({ name, qty, price, mode });
     await newOrder.save();
 
-    // 2️⃣ Find existing holding
+    // Update Holdings
     let holding = await HoldingsModel.findOne({ name });
 
     if (mode === "BUY") {
       if (holding) {
-        // 🧮 weighted average price
         const totalQty = holding.qty + qty;
-        const newAvg =
-          (holding.avg * holding.qty + price * qty) / totalQty;
-
+        const newAvg = (holding.avg * holding.qty + price * qty) / totalQty;
         holding.qty = totalQty;
         holding.avg = newAvg;
         holding.price = price;
         await holding.save();
       } else {
-        // 🆕 new holding
         await HoldingsModel.create({
           name,
           qty,
@@ -260,13 +98,10 @@ app.post("/newOrder", async (req, res) => {
           day: "0%",
         });
       }
-    }
-
-    if (mode === "SELL") {
+    } else if (mode === "SELL") {
       if (!holding) {
         return res.status(400).json({ error: "No holding to sell" });
       }
-
       holding.qty -= qty;
       holding.price = price;
 
@@ -283,9 +118,12 @@ app.post("/newOrder", async (req, res) => {
   }
 });
 
-
+// ✅ FIX 4: Server Start & Database Connection
 app.listen(PORT, () => {
-  console.log("App started!");
-  mongoose.connect(uri);
-  console.log("DB started!");
+  console.log(`App started on port ${PORT}`);
+  
+  // DB Connection ab server start hone ke baad check hoga
+  mongoose.connect(uri)
+    .then(() => console.log("DB Connected successfully!"))
+    .catch((err) => console.log("DB Connection Error:", err));
 });
