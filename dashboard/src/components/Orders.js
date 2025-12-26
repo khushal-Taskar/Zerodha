@@ -6,7 +6,9 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:3002/allOrders").then((res) => {
+    // ✅ Change: Localhost hata kar dynamic variable lagaya
+    // Backticks (`) ka dhyan rakhein
+    axios.get(`${process.env.REACT_APP_API_URL}/allOrders`).then((res) => {
       setOrders(res.data);
     });
   }, []);

@@ -5,7 +5,9 @@ const Positions = () => {
   const [positions, setPositions] = useState([]); // ✅ backend data
 
   useEffect(() => {
-    axios.get("http://localhost:3002/allPositions").then((res) => {
+    // Change: localhost hata kar process.env use kiya
+    // Note: Backticks (`) ka dhyan rakhein
+    axios.get(`${process.env.REACT_APP_API_URL}/allPositions`).then((res) => {
       setPositions(res.data);
     });
   }, []);
