@@ -18,20 +18,24 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+
+// URL ke peeche se '/' hata diya hai (Zaroori step)
 const allowedOrigins = [
-  'https://zerodha-ashen.vercel.app/',  // Apna Vercel Frontend URL yahan dalein
-  'https://zerodha-jgh3.vercel.app/', // Apna Vercel Dashboard URL yahan dalein
-  'http://localhost:3000'                   // Local testing ke liye
+  'https://zerodha-ashen.vercel.app', 
+  'https://zerodha-jgh3.vercel.app', 
+  'http://localhost:3000'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Check if the origin is in our allowed list
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 // app.get("/addHoldings", async (req, res) => {
