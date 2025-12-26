@@ -119,10 +119,10 @@ app.post("/newOrder", async (req, res) => {
 });
 
 // ✅ FIX 4: Server Start & Database Connection
-app.listen(PORT, () => {
+// '0.0.0.0' add karne se server public access allow karega
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`App started on port ${PORT}`);
   
-  // DB Connection ab server start hone ke baad check hoga
   mongoose.connect(uri)
     .then(() => console.log("DB Connected successfully!"))
     .catch((err) => console.log("DB Connection Error:", err));
