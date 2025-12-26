@@ -18,6 +18,22 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+const allowedOrigins = [
+  'https://zerodha-ashen.vercel.app/',  // Apna Vercel Frontend URL yahan dalein
+  'https://zerodha-jgh3.vercel.app/', // Apna Vercel Dashboard URL yahan dalein
+  'http://localhost:3000'                   // Local testing ke liye
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 // app.get("/addHoldings", async (req, res) => {
 //   let tempHoldings = [
 //     {
