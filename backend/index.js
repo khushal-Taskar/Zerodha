@@ -12,7 +12,7 @@ const { OrdersModel } = require("./model/OrdersModel");
 const app = express();
 
 // ✅ FIX 1: Correct PORT (local + Railway/Vercel)
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 8080;
 const uri = process.env.MONGOOSE_URL;
 
 // ✅ FIX 2: JSON parser (body-parser not needed anymore)
@@ -22,7 +22,7 @@ app.use(express.json());
 const allowedOrigins = [
   "https://zerodha-ashen.vercel.app",
   "https://zerodha-jgh3.vercel.app",
-  "http://localhost:3000"
+  "http://localhost:8080"
 ];
 
 app.use(
