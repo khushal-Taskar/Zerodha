@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";          // ✅ axios instance
 import { Link } from "react-router-dom";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    // ✅ Change: Localhost hata kar dynamic variable lagaya
-    // Backticks (`) ka dhyan rakhein
-    axios.get(`${process.env.REACT_APP_API_URL}/allOrders`).then((res) => {
-      setOrders(res.data);
-    });
+    api
+      .get("/allOrders")                 // ✅ sirf route
+      .then((res) => {
+        setOrders(res.data);
+      })
+      .catch((err) => {
+        console.error("Orders fetch error:", err);
+      });
   }, []);
 
   // 👇 agar koi order nahi hai
@@ -35,23 +38,27 @@ const Orders = () => {
 
       <div className="order-table">
         <table>
-          <tr>
-            <th>Instrument</th>
-            <th>Qty.</th>
-            <th>Price</th>
-            <th>Mode</th>
-          </tr>
-
-          {orders.map((order, index) => (
-            <tr key={index}>
-              <td>{order.name}</td>
-              <td>{order.qty}</td>
-              <td>{order.price}</td>
-              <td className={order.mode === "BUY" ? "profit" : "loss"}>
-                {order.mode}
-              </td>
+          <thead>
+            <tr>
+              <th>Instrument</th>
+              <th>Qty.</th>
+              <th>Price</th>
+              <th>Mode</th>
             </tr>
-          ))}
+          </thead>
+
+          <tbody>
+            {orders.map((order, index) => (
+              <tr key={index}>
+                <td>{order.name}</td>
+                <td>{order.qty}</td>
+                <td>{order.price}</td>
+                <td className={order.mode === "BUY" ? "profit" : "loss"}>
+                  {order.mode}
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </div>

@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api/axios";          // ✅ axios instance
 
 const Positions = () => {
-  const [positions, setPositions] = useState([]); // ✅ backend data
+  const [positions, setPositions] = useState([]);
 
   useEffect(() => {
-    // Change: localhost hata kar process.env use kiya
-    // Note: Backticks (`) ka dhyan rakhein
-    axios.get(`${process.env.REACT_APP_API_URL}/allPositions`).then((res) => {
-      setPositions(res.data);
-    });
+    api
+      .get("/allPositions")              // ✅ sirf route
+      .then((res) => {
+        setPositions(res.data);
+      })
+      .catch((err) => {
+        console.error("Positions fetch error:", err);
+      });
   }, []);
 
   return (
@@ -18,36 +21,38 @@ const Positions = () => {
 
       <div className="order-table">
         <table>
-          <tr>
-            <th>Product</th>
-            <th>Instrument</th>
-            <th>Qty.</th>
-            <th>Avg.</th>
-            <th>LTP</th>
-            <th>P&L</th>
-            <th>Chg.</th>
-          </tr>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Instrument</th>
+              <th>Qty.</th>
+              <th>Avg.</th>
+              <th>LTP</th>
+              <th>P&amp;L</th>
+              <th>Chg.</th>
+            </tr>
+          </thead>
 
-          {positions.map((stock, index) => {
-            const curValue = stock.price * stock.qty;
-            const isProfit = curValue - stock.avg * stock.qty >= 0.0;
-            const profClass = isProfit ? "profit" : "loss";
-            const dayClass = stock.isLoss ? "loss" : "profit";
+          <tbody>
+            {positions.map((stock, index) => {
+              const curValue = stock.price * stock.qty;
+              const pnl = curValue - stock.avg * stock.qty;
+              const profClass = pnl >= 0 ? "profit" : "loss";
+              const dayClass = stock.isLoss ? "loss" : "profit";
 
-            return (
-              <tr key={index}>
-                <td>{stock.product}</td>
-                <td>{stock.name}</td>
-                <td>{stock.qty}</td>
-                <td>{stock.avg.toFixed(2)}</td>
-                <td>{stock.price.toFixed(2)}</td>
-                <td className={profClass}>
-                  {(curValue - stock.avg * stock.qty).toFixed(2)}
-                </td>
-                <td className={dayClass}>{stock.day}</td>
-              </tr>
-            );
-          })}
+              return (
+                <tr key={index}>
+                  <td>{stock.product}</td>
+                  <td>{stock.name}</td>
+                  <td>{stock.qty}</td>
+                  <td>{stock.avg.toFixed(2)}</td>
+                  <td>{stock.price.toFixed(2)}</td>
+                  <td className={profClass}>{pnl.toFixed(2)}</td>
+                  <td className={dayClass}>{stock.day}</td>
+                </tr>
+              );
+            })}
+          </tbody>
         </table>
       </div>
     </>

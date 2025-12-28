@@ -2,63 +2,71 @@ require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 
-// Models Import
+// Models
 const { HoldingsModel } = require("./model/HoldingsModel");
 const { PositionsModel } = require("./model/PositionsModel");
 const { OrdersModel } = require("./model/OrdersModel");
 
-// ✅ FIX 1: Dynamic PORT (Railway ke liye zaroori)
+const app = express();
+
+// ✅ FIX 1: Correct PORT (local + Railway/Vercel)
 const PORT = process.env.PORT || 3002;
 const uri = process.env.MONGOOSE_URL;
 
-const app = express();
+// ✅ FIX 2: JSON parser (body-parser not needed anymore)
+app.use(express.json());
 
-// ✅ FIX 2: Sahi CORS Configuration
-// Note: URLs ke aage slash '/' nahi hona chahiye
+// ✅ FIX 3: CORS (safe + simple)
 const allowedOrigins = [
-  'https://zerodha-ashen.vercel.app',
-  'https://zerodha-jgh3.vercel.app',
-  'http://localhost:3000' // Local testing ke liye
+  "https://zerodha-ashen.vercel.app",
+  "https://zerodha-jgh3.vercel.app",
+  "http://localhost:3000"
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // !origin ka matlab hai non-browser requests (like Postman) allow hain
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
-app.use(bodyParser.json());
-
-// ✅ FIX 3: Root Route (Server check karne ke liye)
+// ✅ FIX 4: Root health check
 app.get("/", (req, res) => {
-  res.send("Server is working fine!");
+  res.send("✅ Server is working fine!");
 });
 
-// --- API Routes ---
+// ================= ROUTES =================
 
-// 1. Get All Holdings
+// Get all holdings
 app.get("/allHoldings", async (req, res) => {
-  let allHoldings = await HoldingsModel.find({});
-  res.json(allHoldings);
+  try {
+    const holdings = await HoldingsModel.find({});
+    res.json(holdings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// 2. Get All Positions
+// Get all positions
 app.get("/allPositions", async (req, res) => {
-  let allPositions = await PositionsModel.find({});
-  res.json(allPositions);
+  try {
+    const positions = await PositionsModel.find({});
+    res.json(positions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// 3. Get All Orders
+// Get all orders
 app.get("/allOrders", async (req, res) => {
   try {
     const orders = await OrdersModel.find({});
@@ -68,22 +76,26 @@ app.get("/allOrders", async (req, res) => {
   }
 });
 
-// 4. Place New Order (Buy/Sell Logic)
+// Place new order
 app.post("/newOrder", async (req, res) => {
   try {
     const { name, qty, price, mode } = req.body;
 
-    // Save order
-    const newOrder = new OrdersModel({ name, qty, price, mode });
-    await newOrder.save();
+    if (!name || !qty || !price || !mode) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
 
-    // Update Holdings
+    // Save order
+    await OrdersModel.create({ name, qty, price, mode });
+
     let holding = await HoldingsModel.findOne({ name });
 
     if (mode === "BUY") {
       if (holding) {
         const totalQty = holding.qty + qty;
-        const newAvg = (holding.avg * holding.qty + price * qty) / totalQty;
+        const newAvg =
+          (holding.avg * holding.qty + price * qty) / totalQty;
+
         holding.qty = totalQty;
         holding.avg = newAvg;
         holding.price = price;
@@ -98,10 +110,13 @@ app.post("/newOrder", async (req, res) => {
           day: "0%",
         });
       }
-    } else if (mode === "SELL") {
+    }
+
+    if (mode === "SELL") {
       if (!holding) {
         return res.status(400).json({ error: "No holding to sell" });
       }
+
       holding.qty -= qty;
       holding.price = price;
 
@@ -112,18 +127,19 @@ app.post("/newOrder", async (req, res) => {
       }
     }
 
-    res.status(201).json({ message: "Order processed & holdings updated" });
+    res.status(201).json({ message: "✅ Order processed successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ FIX 4: Server Start & Database Connection
-// '0.0.0.0' add karne se server public access allow karega
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`App started on port ${PORT}`);
-  
-  mongoose.connect(uri)
-    .then(() => console.log("DB Connected successfully!"))
-    .catch((err) => console.log("DB Connection Error:", err));
-});
+// ✅ FIX 5: DB connect FIRST, then server start
+mongoose
+  .connect(uri)
+  .then(() => {
+    console.log("✅ DB Connected successfully!");
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 App started on port ${PORT}`);
+    });
+  })
+  .catch((err) => console.error("❌ DB Connection Error:", err));
